@@ -36,24 +36,19 @@ bool user_solution_checker::input_phase(std::istream& in, std::ostream& out) {
             // Зчитуємо весь рядок користувача в список для подальшої перевірки
             for (int c = 0; c < cols_; ++c) {
                 if (!(in >> row_vals[c])) {
-                    out << "  Помилка: введіть ціле число.\n";
+                    out << "Помилка: введіть ціле число.\n";
                     in.clear();
                     in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     format_error = true;
                     break;
                 }
-            }
-            if (format_error) continue;
 
-            // Валідація рядка
-            bool row_ok = true;
-            for (int c = 0; c < cols_; ++c) {
                 int v = row_vals[c];
                 // Допускаються тільки заповнені, чорні, і клітинки з підказками
                 if (v < -2 || v == 0) {
-                    out << "  Помилка: недопустиме значення "<<v
+                    out << "Помилка: недопустиме значення "<<v
                         <<" ("<<r+1<<","<<c+1<<").\n";
-                    row_ok = false;
+                    format_error = true;
                     break;
                 }
                 /*
@@ -61,31 +56,33 @@ bool user_solution_checker::input_phase(std::istream& in, std::ostream& out) {
                     в початковій сітці і чи значення збігаються
                 */
                 if (v > 0 && initial_[r][c] != v) {
-                    out << "  Помилка: підказка "<<v
+                    out << "Помилка: підказка "<<v
                         <<" не була в початковій сітці ("<<r+1<<","<<c+1<<").\n";
-                    row_ok = false;
+                    format_error = true;
                     break;
                 }
                 // Перевірки чи немає двох сусідніх клітинок з підказками
                 if (v > 0) {
                     if (c>0 && row_vals[c-1]>0) {
-                        out << "  Помилка: дві підказки підряд у рядку "<<(r+1)
+                        out << "Помилка: дві підказки підряд у рядку "<<(r+1)
                             <<" між стовпцями "<<c<<" та "<<c+1<<".\n";
-                        row_ok = false;
+                        format_error = true;
                         break;
                     }
                     if (r>0 && user_grid_[r-1][c]>0) {
-                        out << "  Помилка: дві підказки підряд у стовпці "<<(c+1)
+                        out << "Помилка: дві підказки підряд у стовпці "<<(c+1)
                             <<" між рядками "<<r<<" та "<<r+1<<".\n";
-                        row_ok = false;
+                        format_error = true;
                         break;
                     }
                 }
             }
-            if (!row_ok) continue;
-            // Якщо рядок коректний - записуєм його користвацьку сітку для майбутньої перевірки
-            user_grid_[r] = std::move(row_vals);
-            break;
+
+            if (!format_error) {
+                // Якщо рядок коректний - записуєм його користвацьку сітку для майбутньої перевірки
+                user_grid_[r] = std::move(row_vals);
+                break;
+            }
         }
     }
     return true;
