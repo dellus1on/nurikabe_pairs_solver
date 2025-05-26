@@ -137,29 +137,30 @@ bool user_solution_checker::check_black_2x2_block(cell &lt) const {
 
 // Метод для перевірки зв'язності чорної області
 bool user_solution_checker::check_black_connectivity() const {
-    std::vector<std::vector<bool>> vis(rows_, std::vector<bool>(cols_,false));
-    cell start(-1,-1);
+    std::vector<char> vis(rows_ * cols_, 0);
+    cell start(-1, -1);
     int total_black = 0;
     for (int r = 0; r < rows_; ++r)
         for (int c = 0; c < cols_; ++c)
             if (user_grid_[r][c] == -1) {
-                if (start.row < 0) start = cell(r,c);
+                if (start.row < 0) start = cell(r, c);
                 ++total_black;
             }
     if (start.row < 0) return true;
     std::queue<cell> q;
     q.push(start);
-    vis[start.row][start.col] = true;
+    vis[start.row * cols_ + start.col] = 1;
     int count = 0;
     while (!q.empty()) {
         cell u = q.front(); q.pop();
         ++count;
         for (int d = 0; d < 4; ++d) {
             int nr = u.row + DR_[d], nc = u.col + DC_[d];
-            if (out_of_bounds(nr,nc) || vis[nr][nc] || user_grid_[nr][nc] != -1)
+            int nid = nr * cols_ + nc;
+            if (out_of_bounds(nr, nc) || vis[nid] || user_grid_[nr][nc] != -1)
                 continue;
-            vis[nr][nc] = true;
-            q.push(cell(nr,nc));
+            vis[nid] = 1;
+            q.push(cell(nr, nc));
         }
     }
     return count == total_black;
@@ -168,22 +169,22 @@ bool user_solution_checker::check_black_connectivity() const {
 // Метод для перевірки площі островів (повинна мати площу сумі двух клітинок з цифрами)
 bool user_solution_checker::check_islands(std::string &reason, cell &loc) const {
     // Список для зберігання пройдених клітинок
-    std::vector<std::vector<bool>> vis(rows_, std::vector<bool>(cols_,false));
+    std::vector<char> vis(rows_ * cols_, 0);
 
     for (int r = 0; r < rows_; ++r) {
         for (int c = 0; c < cols_; ++c) {
             // Якщо клітинка не пройдена і належить білій області - перевіряємо її
-            if (!vis[r][c] && (user_grid_[r][c] > 0 || user_grid_[r][c] == -2)) {
+            if (!vis[r * cols_ + c] && (user_grid_[r][c] > 0 || user_grid_[r][c] == -2)) {
                 // Черга для проходу в ширину по білій області
                 std::queue<cell> q;
                 cell start(-1, -1), end(-1, -1);
-                // Змінна для підрахнку розміру білої області
+                // Змінна для підрахунку розміру білої області
                 int size = 0;
                 // Додаємо в чергу стартову клітинку і помічаємо її як пройдену
-                q.push(cell(r,c));
-                vis[r][c] = true;
+                q.push(cell(r, c));
+                vis[r * cols_ + c] = 1;
 
-                // Проходимося по всім клітинкам і рахуєм розмір області, також паралельно записуємо в start і end клітинки з підказками
+                // Проходимося по всім клітинкам і рахуємо розмір області, також паралельно записуємо в start і end клітинки з підказками
                 while (!q.empty()) {
                     cell u = q.front(); q.pop();
                     size++;
@@ -200,10 +201,11 @@ bool user_solution_checker::check_islands(std::string &reason, cell &loc) const 
                     }
                     for (int d = 0; d < 4; ++d) {
                         int nr = u.row + DR_[d], nc = u.col + DC_[d];
-                        if (out_of_bounds(nr,nc) || vis[nr][nc]) continue;
+                        int nid = nr * cols_ + nc;
+                        if (out_of_bounds(nr, nc) || vis[nid]) continue;
                         if (user_grid_[nr][nc] > 0 || user_grid_[nr][nc] == -2) {
-                            vis[nr][nc] = true;
-                            q.push(cell(nr,nc));
+                            vis[nid] = 1;
+                            q.push(cell(nr, nc));
                         }
                     }
                 }
