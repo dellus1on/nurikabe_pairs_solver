@@ -37,8 +37,6 @@ bool user_solution_checker::input_phase(std::istream& in, std::ostream& out) {
             for (int c = 0; c < cols_; ++c) {
                 if (!(in >> row_vals[c])) {
                     out << "Помилка: введіть ціле число.\n";
-                    in.clear();
-                    in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     format_error = true;
                     break;
                 }
@@ -55,30 +53,25 @@ bool user_solution_checker::input_phase(std::istream& in, std::ostream& out) {
                     Якщо користувач ввів число більше нуля (клітинка з підказкою), перевіряєм чи є вона на цьому місці
                     в початковій сітці і чи значення збігаються
                 */
-                if (v > 0 && initial_[r][c] != v) {
-                    out << "Помилка: підказка "<<v
-                        <<" не була в початковій сітці ("<<r+1<<","<<c+1<<").\n";
+                if (v > 0 && initial_[r][c] == 0) {
+                    out << "Помилка: у клітинці ("<< r+1 << "," << c+1
+                        <<") не було підказки, а ви ввели " << v << ".\n";
                     format_error = true;
                     break;
                 }
-                // Перевірки чи немає двох сусідніх клітинок з підказками
-                if (v > 0) {
-                    if (c>0 && row_vals[c-1]>0) {
-                        out << "Помилка: дві підказки підряд у рядку "<<(r+1)
-                            <<" між стовпцями "<<c<<" та "<<c+1<<".\n";
-                        format_error = true;
-                        break;
-                    }
-                    if (r>0 && user_grid_[r-1][c]>0) {
-                        out << "Помилка: дві підказки підряд у стовпці "<<(c+1)
-                            <<" між рядками "<<r<<" та "<<r+1<<".\n";
-                        format_error = true;
-                        break;
-                    }
+                // Якщо користувач не ввів підказку, яка була на цьому місці - виводимо відповідну помилку
+                if (initial_[r][c] > 0 && initial_[r][c] != v) {
+                    out << "Помилка: у клітинці ("<< r+1 << "," << c+1
+                        <<") очікувалась підказка " << initial_[r][c]
+                        << ", а ви ввели " << v << ".\n";
+                    format_error = true;
+                    break;
                 }
             }
-
-            if (!format_error) {
+            if (format_error) {
+                in.clear();
+                in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            } else {
                 // Якщо рядок коректний - записуєм його користвацьку сітку для майбутньої перевірки
                 user_grid_[r] = std::move(row_vals);
                 break;
@@ -93,13 +86,13 @@ bool user_solution_checker::validation_phase(std::ostream& out) {
     cell lt;
     if (check_black_2x2_block(lt)) {
         // Якщо чорний блок було знайдено, виводим помилку і координати лівого верхнього кута
-        out << "Помилка: знайдено 2×2 чорний блок у клітині ("
+        out << "\nПомилка: знайдено 2×2 чорний блок у клітині ("
             << lt.row+1 << "," << lt.col+1 << ")\n";
         return false;
     }
     // Перевірка чорної області на зв'язність
     if (!check_black_connectivity()) {
-        out << "Помилка: чорна область незв'язна\n";
+        out << "\nПомилка: чорна область незв'язна\n";
         return false;
     }
     // Причина помилки
@@ -107,7 +100,7 @@ bool user_solution_checker::validation_phase(std::ostream& out) {
     // Клітинка де знайдена помилка
     cell loc;
     if (!check_islands(reason, loc)) {
-        out << "Помилка: " << reason;
+        out << "\nПомилка: " << reason;
         if (loc.row >= 0)
             out << " (рядок " << loc.row+1 << ", стовпець " << loc.col+1 << ")";
         out << "\n";
