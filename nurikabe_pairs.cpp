@@ -6,10 +6,10 @@
 #include "nurikabe_solver.hpp"
 #include "user_solution_checker.hpp"
 
-using Grid = std::vector<std::vector<int>>;
+using grid = std::vector<std::vector<int>>;
 
 // Вивід довільної сітки у консолі
-void display(const Grid &grid) {
+void display(const grid &grid) {
     int rows = grid.size();
     int cols = rows ? grid[0].size() : 0;
 
@@ -106,7 +106,7 @@ int main() {
                         std::cout << "---\n";
                     }
 
-                    std::cout << "Час розв'язання: " << std::fixed << std::setprecision(3) << duration.count() << " секунд\n";
+                    std::cout << "Час розв'язання: " << std::fixed << std::setprecision(2) << duration.count() << " секунд\n";
                 } catch (const std::runtime_error &e) {
                     std::cerr << e.what() << "\n";
                 }
