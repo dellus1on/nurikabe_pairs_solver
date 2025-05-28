@@ -36,12 +36,12 @@ grid_data grid_reader::from_console(std::istream &in, std::ostream &out) {
     for (int r = 0; r < data.rows; ++r) {
         while (true) {
             out << "Введіть " << data.cols << " чисел для рядка " << r + 1 << ": ";
+            int temp_count = 0;
+            int temp_hint_sum = 0;
             bool format_error = false;
             for (int c = 0; c < data.cols; ++c) {
                 if (!(in >> data.grid[r][c])) {
                     out << "Помилка: введіть ціле число.\n";
-                    in.clear();
-                    in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     format_error = true;
                     break;
                 }
@@ -50,7 +50,7 @@ grid_data grid_reader::from_console(std::istream &in, std::ostream &out) {
                 // Дозволяємо тільки додатні значення
                 if (v < 0) {
                     out << "Помилка: від’ємне значення.\n";
-                    format_error = true;    
+                    format_error = true;
                     break;
                 }
                 // Не дозволяємо вводити значення більшим за розміри сітки
@@ -59,7 +59,7 @@ grid_data grid_reader::from_console(std::istream &in, std::ostream &out) {
                     format_error = true;
                     break;
                 }
-                // Перевірка чисел з підказками на сусідство і що сума не повинна перевищувати розміри сітки
+                // Перевірка сусідніх підказок і суми
                 if (v > 0) {
                     if (c > 0 && data.grid[r][c - 1] > 0) {
                         out << "Помилка: сусідні підказки.\n";
@@ -71,21 +71,23 @@ grid_data grid_reader::from_console(std::istream &in, std::ostream &out) {
                         format_error = true;
                         break;
                     }
-                    if (hint_sum + v > data.rows * data.cols) {
+                    if (hint_sum + temp_hint_sum + v > data.rows * data.cols) {
                         out << "Помилка: перевищено суму підказок.\n";
                         format_error = true;
                         break;
                     }
+                    temp_count++;
+                    temp_hint_sum += v;
                 }
             }
-            // Якщо ввід коректний - записуємо рядок у сітку
-            if (!format_error) {
-                for (int c = 0; c < data.cols; ++c) {
-                    if (data.grid[r][c] > 0) {
-                        hint_count++;
-                        hint_sum += data.grid[r][c];
-                    }
-                }
+
+            // Якщо помилка - очищаємо стан потоку, відкидаємо залишок рядка і заново читаємо рядок
+            if (format_error) {
+                in.clear();
+                in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            } else {
+                hint_count += temp_count;
+                hint_sum += temp_hint_sum;
                 break;
             }
         }
