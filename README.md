@@ -21,7 +21,7 @@
 ```bash
 g++ -std=c++17 -o solve nurikabe_pairs.cpp nurikabe_solver.cpp grid_reader.cpp user_solution_checker.cpp
 ./solve
-
+```
 ### Компіляція з оптимізацією:
 ```bash
 g++ -std=c++17 -o solve nurikabe_pairs.cpp nurikabe_solver.cpp grid_reader.cpp user_solution_checker.cpp
